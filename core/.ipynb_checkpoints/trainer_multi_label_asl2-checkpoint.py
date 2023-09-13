@@ -118,7 +118,7 @@ class Trainer():
             weight_pred_list.extend(weighed_sig_pred.tolist())
 
         return model, test_pred_list, weight_pred_list, test_label_list
-
+    
     def set_data(self, count, batch_size, mth):
         
         train_path = f'./data/multi_data/cnn_brnn/1_train_data.csv'
@@ -143,22 +143,8 @@ class Trainer():
 
         tr_weight = compute_class_weight(class_weight = 'balanced', classes = np.unique(train_count), y = train_count)
         val_weight = compute_class_weight(class_weight = 'balanced', classes = np.unique(val_count), y = val_count)
-        te_weight = compute_class_weight(class_weight = 'balanced', classes = np.unique(evl_count), y = evl_count)
  
-        return train_dataloader, val_dataloader, test_dataloader, tr_weight, val_weight, te_weight
-        
-    
-    
-    def set_gene_data(self, count, batch_size, mth):
-
-        test_path = f'./data/multi_data/pet_pu_pha_gene.csv'
-        test_seq, test_label = get_csv_file(test_path)
-        
-        testdataset = PlasticDataset(test_seq, test_label, mth)
-        test_dataloader = DataLoader(testdataset, batch_size = batch_size, pin_memory = True, num_workers = 1, drop_last = True)
-        te_weight = compute_sample_weight(class_weight = 'balanced', y = test_label)
-        
-        return test_dataloader, te_weight
+        return train_dataloader, val_dataloader, test_dataloader, tr_weight, val_weight
     
     def set_data_brnn(self, count, batch_size, mth):
 
@@ -187,16 +173,6 @@ class Trainer():
         te_weight = compute_class_weight(class_weight = 'balanced', classes = np.unique(evl_count), y = evl_count)
         
         return train_dataloader, val_dataloader, test_dataloader, tr_weight, val_weight, te_weight
-    
-    def set_brnn_gene_data(self, count, batch_size, mth):
-        test_path = f'./data/multi_data/pet_pu_pha_gene.csv'
-        test_seq, test_label = get_csv_file(test_path)
-        
-        testdataset = PlasticDatasetBRNN(test_seq, test_label, mth)
-        test_dataloader = DataLoader(testdataset, batch_size = batch_size, pin_memory = True, num_workers = 1, drop_last = True)
-        te_weight = compute_sample_weight(class_weight = 'balanced', y = test_label)
-        
-        return test_dataloader, te_weight
         
     def count_class_data(self, csv_data):
         class_data = ['NYLON', 'PBAT', 'PBS', 'PBSA', 'PCL', 'PE', 'PEA', 'PES', 'PET', 'PHA', 'PHB', 'PLA', 'PU', 'PVA', 'NEGATIVE']

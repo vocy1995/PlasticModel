@@ -10,16 +10,11 @@ from core.PBCmodel_transformer_all import PlasticTransformer
 from sklearn.metrics import roc_auc_score
 from config.cfg_multi_label import opt
 
-from tools.save_result import save_AUC, save_loss_plot, save_pred_result, create_logger
+from tools.save_result import save_loss_plot, save_pred_result, create_logger
 from core.trainer_multi_label_asl2 import Trainer
 
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import f1_score
 from datetime import datetime
-
-today = str(datetime.now())
-today = today[:10]
-# RESULT_MAIN_PATH = f'result_4class/{today}/'
-RESULT_MAIN_PATH = f'result_cnn_tran/2023-07-12/'
 
 def make_dir(path):
     if not os.path.isdir(path):
@@ -37,6 +32,7 @@ def train_model(batch_size, lr):
         print(f'method : {mth_name}')
         check_val_loss = 1000
         
+        #make result path
         model_path = f'{RESULT_MAIN_PATH}CNN_ALL_ASL2/'
         method_path = f'{model_path}{mth_name}/'
         fold_path = f'{method_path}{fold_count}_Fold/'
@@ -58,7 +54,8 @@ def train_model(batch_size, lr):
         make_dir(save_model_path)
         make_dir(pred_path)
 
-        train_dataloader, val_dataloader, test_dataloader, tr_weight, val_weight, te_weight = trainer.set_data(fold_count, batch_size, mth)
+        #make dataloader and class weight
+        train_dataloader, val_dataloader, test_dataloader, tr_weight, val_weight = trainer.set_data(fold_count, batch_size, mth)
 
         model = PlasticTransformer(kr_size).cuda()
 
@@ -80,9 +77,8 @@ def train_model(batch_size, lr):
             weighted_pred_file_name = f'{fold_count}_Fold_{mth_name}_weighted_result.csv'
             model_save_name = f'{fold_count}_Fold_{mth_name}.pth'
             
-            model.train()
             epoch_list.append(epoch_idx)
-            
+            model.train()
             model, train_loss = trainer.train_model(train_dataloader, model, optimizer, tr_weight, batch_size)
             
             model.eval()
@@ -94,30 +90,24 @@ def train_model(batch_size, lr):
                 
             train_loss_list.append(train_loss)
             val_loss_list.append(val_loss)
-
-            prec = precision_score(test_pred_list, test_label_list, average='samples', zero_division = 0)
-            rec = recall_score(test_pred_list, test_label_list, average='samples', zero_division = 0)
-            
-            wt_prec = precision_score(weight_pred_list, test_label_list, average='samples', zero_division = 0)
-            wt_rec = recall_score(weight_pred_list, test_label_list, average='samples', zero_division = 0)
             
             F1 = f1_score(test_pred_list, test_label_list, average = 'samples')
             wt_F1 = f1_score(weight_pred_list, test_label_list, average = 'samples')
 
             cur_lr = optimizer.param_groups[0]['lr']
 
+            #make log file
             fileHandler, streamHandler, logger = create_logger(log_path + log_save_name)
-
-            #multi
             logger.info(f'{fold_count}Fold Epoch : {epoch_idx} | Train_loss : {train_loss:.4f} | Val_loss : {val_loss:.4f} | F1 : {F1:.4f} | wt_F1 : {wt_F1:.4f} | lr : {cur_lr}')
             
             fileHandler.close()
             logger.removeHandler(fileHandler)
             logger.removeHandler(streamHandler)
-
+            
+            #save prediction data as csv file
             save_pred_result(test_pred_list, test_label_list, pred_path + pred_file_name)
 
-            if check_val_loss > val_loss:# and count_val_loss != 2:
+            if check_val_loss > val_loss:
                 check_val_loss = val_loss
                 torch.save(model.state_dict(), save_model_path + model_save_name)
                 val_check_count = 0
@@ -133,7 +123,10 @@ def train_model(batch_size, lr):
         print()
 
 def main():
-
+    today = str(datetime.now())
+    today = today[:10]
+    RESULT_MAIN_PATH = f'result_4class/{today}/'
+    
     batch_size_list = [16, 32, 64]
     lr_list = [1e-4, 1e-5, 1e-6]
     

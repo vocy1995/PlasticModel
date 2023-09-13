@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#DeepEC Model
 class PlasticModel(nn.Module):
     def __init__(self, kernel_size):
         super(PlasticModel, self).__init__()

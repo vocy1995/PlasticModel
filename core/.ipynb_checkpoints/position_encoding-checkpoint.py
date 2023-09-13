@@ -61,7 +61,6 @@ def build_position_encoding(args):
         downsample_ratio = 32
 
     if args.position_embedding in ('v2', 'sine'):
-        print("erwtkjwhertkjwehgrkwe")
         # TODO find a better way of exposing other arguments
         assert args.img_size % 32 == 0, "args.img_size ({}) % 32 != 0".format(args.img_size)
         position_embedding = PositionEmbeddingSine(N_steps, normalize=True, maxH=args.img_size // downsample_ratio, maxW=args.img_size // downsample_ratio)

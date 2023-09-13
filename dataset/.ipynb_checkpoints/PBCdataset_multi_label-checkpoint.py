@@ -56,6 +56,7 @@ class PlasticDatasetBRNN:
         seq = torch.FloatTensor(seq)
         return seq, label
     
+#filtering label data 
 def make_multi_label(data):
     data = data.translate(str.maketrans('', '', string.punctuation))
     data = data.split(' ')
